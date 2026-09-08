@@ -1,0 +1,1 @@
+export default function VerifyOtpPage(){ return <div className="p-10 text-center"><h1 className="font-bold">Verify OTP</h1><p className="text-sm text-gray-500">OTP verification not yet implemented by backend.</p></div>; }
