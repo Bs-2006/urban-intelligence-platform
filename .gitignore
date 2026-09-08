@@ -1,0 +1,370 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+.pytype/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pybuilder/
+target/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+backend/venv/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.code-workspace
+
+# Node / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+frontend/node_modules/
+ai-demo-frontend/node_modules/
+pothole-ai/frontend/node_modules/
+/dist/
+/dist-ssr/
+*.local
+
+# Build outputs
+*.tsbuildinfo
+frontend/dist/
+frontend/build/
+ai-demo-frontend/dist/
+pothole-ai/frontend/dist/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+ai-demo-frontend/.env
+pothole-ai/ai/.env
+pothole-ai/frontend/.env
+simulator/.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log.*
+backend/*.log
+backend/*_err.log
+ai_uvicorn.log
+ai_uvicorn_err.log
+pothole-ai/ai_uvicorn.log
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+incidents.db
+ai_observations.db
+simulator/incidents.db
+pothole-ai/ai/ai_observations.db
+
+# AI/ML Models
+*.pt
+*.pth
+*.onnx
+*.h5
+*.pb
+*.pkl
+*.joblib
+/models/
+checkpoints/
+
+# Media files (uploaded by users)
+backend/local_media/
+backend/local_media/**
+simulator/uploads/
+uploads/
+media/
+static/uploaded/
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+tmp/
+temp/
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+.pytest_cache.zip
+pothole-ai.zip
+
+# Large video files
+*.mp4
+*.mov
+*.MOV
+*.avi
+*.mkv
+*.webm
+*.flv
+*.wmv
+*.m4v
+
+# Large CSV data files
+simulator/data/**/*.csv
+pothole-ai/demo_data/**/*.csv
+simulator/images/**
+simulator/images_cache/**
+
+# Test coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Package manager locks (optional - uncomment if you want to ignore)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Compiled files
+*.pyc
+*.pyo
+*.class
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Documentation build
+docs/_build/
+site/
+
+# Backup files
+*.bak
+*.backup
+*.old
+*~
+
+# Supabase / Firebase credentials
+supabase/
+.supabase/
+firebase-debug.log
+.firebase/
+
+# AWS credentials
+.aws/
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Windows
+*.lnk
+
+# Linux
+.directory
+
+# Secrets and keys
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+credentials/
+
+# Local configuration overrides
+local_settings.py
+config.local.json
+
+# ESLint cache
+.eslintcache
+
+# Stylelint cache
+.stylelintcache
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+# public (Gatsby) - disabled to avoid matching src/pages/public/
+# public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# SvelteKit build
+.svelte-kit
+
+# Rust
+target/
+Cargo.lock
+
+# Go
+*.exe
+*.exe~
+*.test
+*.out
+vendor/
+
+# Simulation data (large files)
+simulator/images/
+simulator/images_cache/
+simulator/data/
+pothole-ai/demo_data/
+simulator/uploads/
+
+# Binary files that shouldn't be committed
+*.bin
+dash_raw.bin
+dash_raw2.bin
+map_raw.bin
+
+# Personal notes
+notes.txt
+TODO.txt
+scratch.md
+
+# --- Ensure Node/Env coverage (added for GitHub push fix) ---
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+.cache/
+*.cache
+tmp/
+temp/
+!**/.env.example
+!**/.env.sample
+!**/.env.template

@@ -1,0 +1,36 @@
+{
+  "routes": [
+    {
+      "route_id": "BVR001",
+      "waypoints": ["Bhimavaram", "Veeravasaram", "Pennada", "Palakollu Road", "Palakollu"]
+    },
+    {
+      "route_id": "BVR002",
+      "waypoints": ["Bhimavaram", "Undi", "Attili", "Pentapadu", "Tadepalligudem"]
+    },
+    {
+      "route_id": "BVR003",
+      "waypoints": ["Bhimavaram", "Veeravasaram", "Mogalthur Road", "Narsapur Road", "Narasapur"]
+    },
+    {
+      "route_id": "BVR004",
+      "waypoints": ["Bhimavaram", "Undi", "Akividu Road", "Tanuku Road", "Tanuku"]
+    },
+    {
+      "route_id": "BVR005",
+      "waypoints": ["Bhimavaram", "Undi Road", "Undi"]
+    },
+    {
+      "route_id": "BVR006",
+      "waypoints": ["Bhimavaram", "Undi", "Kalla", "Akividu"]
+    },
+    {
+      "route_id": "BVR007",
+      "waypoints": ["Bhimavaram", "Undi Road", "Attili"]
+    },
+    {
+      "route_id": "BVR008",
+      "waypoints": ["Bhimavaram", "Veeravasaram", "Veeravasaram Road"]
+    }
+  ]
+}

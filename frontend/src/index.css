@@ -1,0 +1,7 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+* { font-family: Inter, system-ui, -apple-system, sans-serif; }
+.leaflet-container { height: 100%; width: 100%; }
+.leaflet-pane { z-index: 400; }
+.leaflet-top, .leaflet-bottom { z-index: 500; }

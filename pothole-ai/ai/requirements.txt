@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+ultralytics
+huggingface_hub
+pillow
+opencv-python
+requests
+python-dotenv
+python-multipart
+numpy
+torch
+transformers
+easyocr
+paddleocr
+paddlepaddle
+
