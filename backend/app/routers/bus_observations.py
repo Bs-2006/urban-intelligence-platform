@@ -6,7 +6,7 @@ from typing import Optional
 from datetime import datetime
 from pathlib import Path
 import mimetypes
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_website_user
 from app.models.bus_observation import BusObservation
 from app.services.supabase_storage import upload_incident_image
 from app.config import get_settings
@@ -182,7 +182,7 @@ async def get_observation_image(obs_id: int, db: AsyncSession = Depends(get_db))
 
 @router.get("")
 @router.get("/")
-async def list_observations(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
+async def list_observations(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
     result = await db.execute(select(BusObservation).order_by(BusObservation.created_at.desc()).offset(skip).limit(limit))
     rows = result.scalars().all()
     # Fetch associated incident types via metadata_json->>'observation_id' (keep compatible)

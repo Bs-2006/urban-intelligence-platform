@@ -1,6 +1,6 @@
 ﻿from fastapi import APIRouter, Depends, Query, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dependencies import get_db, get_current_user
+from app.dependencies import get_db, get_current_user, get_current_website_user
 from app.schemas.incident import IncidentCreate, IncidentUpdate, IncidentOut
 from app.services.incident_service import (
     create_incident,
@@ -14,10 +14,10 @@ from app.services.supabase_storage import upload_incident_image
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
 
 
-@router.post("/", response_model=IncidentOut, status_code=201, summary="Create citizen incident (source=citizen, reported_by=current user)")
+@router.post("/", response_model=IncidentOut, status_code=201, summary="Create citizen incident (source=citizen, reported_by=current user) - JWT required")
 async def add_incident(
     data: IncidentCreate,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_website_user),
     db: AsyncSession = Depends(get_db),
 ):
     # Enforce citizen source; AI should use internal create_ai_incident
@@ -44,8 +44,8 @@ async def get_incidents(
     return await list_incidents(db, skip, limit, incident_type, category, status, severity, bus_id, source, reported_by)
 
 
-@router.get("/stats/summary", summary="Incident stats aggregated by status/source/type/severity (for agent)")
-async def get_incident_stats(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db)):
+@router.get("/stats/summary", summary="Incident stats aggregated by status/source/type/severity (for agent) - JWT required")
+async def get_incident_stats(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
     from sqlalchemy import select, func
     from app.models.incident import Incident
     q = select(Incident)
@@ -64,11 +64,26 @@ async def get_incident_stats(incident_type: str | None = None, status: str | Non
     return {"total": total, "by_status": by_status, "by_source": by_source, "by_type": by_type, "by_severity": by_severity}
 
 @router.get("/stats", include_in_schema=False)
-async def get_incident_stats_alias(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db)):
-    return await get_incident_stats(incident_type, status, severity, source, bus_id, db)
+async def get_incident_stats_alias(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
+    from sqlalchemy import select
+    from app.models.incident import Incident
+    from collections import Counter
+    q = select(Incident)
+    if incident_type: q = q.where(Incident.incident_type == incident_type)
+    if status: q = q.where(Incident.status == status)
+    if severity: q = q.where(Incident.severity == severity)
+    if source: q = q.where(Incident.source == source)
+    if bus_id is not None: q = q.where(Incident.bus_id == bus_id)
+    rows = (await db.execute(q)).scalars().all()
+    total = len(rows)
+    by_status = dict(Counter(getattr(r.status, "value", str(r.status)) for r in rows))
+    by_source = dict(Counter(getattr(r.source, "value", str(r.source)) for r in rows))
+    by_type = dict(Counter(getattr(r.incident_type, "value", str(r.incident_type)) for r in rows))
+    by_severity = dict(Counter(getattr(r.severity, "value", str(r.severity)) for r in rows))
+    return {"total": total, "by_status": by_status, "by_source": by_source, "by_type": by_type, "by_severity": by_severity}
 
 @router.get("/{incident_id}", response_model=IncidentOut)
-async def get_incident_by_id(incident_id: int, db: AsyncSession = Depends(get_db)):
+async def get_incident_by_id(incident_id: int, db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
     return await get_incident(db, incident_id)
 
 
@@ -77,7 +92,7 @@ async def patch_incident(
     incident_id: int,
     data: IncidentUpdate,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(get_current_website_user),
 ):
     return await update_incident(db, incident_id, data)
 
@@ -86,18 +101,18 @@ async def patch_incident(
 async def remove_incident(
     incident_id: int,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(get_current_website_user),
 ):
     await delete_incident(db, incident_id)
     return None
 
 
-@router.post("/{incident_id}/image", response_model=IncidentOut, summary="Upload incident image to Supabase Storage")
+@router.post("/{incident_id}/image", response_model=IncidentOut, summary="Upload incident image to Supabase Storage - JWT required")
 async def upload_incident_image_endpoint(
     incident_id: int,
     file: UploadFile = File(..., description="Image file (jpeg/png/webp/gif, max 5MB)"),
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_website_user),
 ):
     # Minimal validation: must be image
     if not file.content_type or not file.content_type.startswith("image/"):

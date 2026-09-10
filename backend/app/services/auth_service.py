@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from app.models.user import User
 from app.schemas.user import UserCreate
@@ -35,16 +36,32 @@ async def _send_otp_email(email: str, otp: str) -> None:
         from app.utils.email import send_otp_email
 
         await send_otp_email(email, otp)
+        logger.info("OTP email dispatched to %s", email)
     except Exception as e:
-        # Do not break registration if email fails in dev (log only).
-        # In production, you may want to raise 500 instead.
-        logger.warning("Failed to send OTP email to %s: %s", email, e)
+        # Log with full stacktrace so failures are visible; do not break registration
+        # (OTP is still saved and can be resent). In production you may want to raise.
+        logger.exception("Failed to send OTP email to %s: %s", email, e)
 
 
 async def register_user(db: AsyncSession, data: UserCreate) -> User:
+    # Only admin/worker can register - reject citizen (public citizens do NOT create accounts)
+    # Keep citizen frontend separate: citizens submit complaints via /public/* without account
+    role_val = data.role.value if hasattr(data.role, "value") else str(data.role)
+    if role_val == "citizen":
+        raise HTTPException(status_code=400, detail="Citizen registration not allowed. Only admin and worker can register.")
+    # Also reject any role not in allowed website roles
+    allowed_roles = {"admin", "worker", "transport_officer"}
+    if role_val not in allowed_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role '{role_val}'. Only admin and worker can register.")
+    # Check duplicate email (including unverified accounts) - do not create another account
     existing = await db.execute(select(User).where(User.email == data.email))
     if existing.scalar_one_or_none():
         raise HTTPException(status_code=400, detail="Email already registered")
+    # Check duplicate phone cleanly with 400 instead of DB 500
+    if data.phone:
+        existing_phone = await db.execute(select(User).where(User.phone == data.phone))
+        if existing_phone.scalar_one_or_none():
+            raise HTTPException(status_code=400, detail="Phone already registered")
     otp = _generate_otp()
     now = datetime.now(timezone.utc)
     expires = now + timedelta(minutes=settings.otp_expire_minutes)
@@ -60,7 +77,12 @@ async def register_user(db: AsyncSession, data: UserCreate) -> User:
         otp_sent_at=now,
     )
     db.add(user)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        # Handle race condition or unique constraint on email/phone with 400
+        raise HTTPException(status_code=400, detail="Email or phone already registered")
     await db.refresh(user)
     await _send_otp_email(user.email, otp)
     return user
@@ -71,6 +93,14 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> Toke
     user = result.scalar_one_or_none()
     if not user or not verify_password(password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    # Citizens are NOT website users - reject citizen login even if account exists
+    role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
+    if role_val == "citizen":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Citizen login not allowed. Citizens do not have website accounts.")
+    # Only admin/worker (and transport_officer) can log in to website
+    allowed_roles = {"admin", "worker", "transport_officer"}
+    if role_val not in allowed_roles:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Login not allowed for this role.")
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -78,7 +108,7 @@ async def authenticate_user(db: AsyncSession, email: str, password: str) -> Toke
         )
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is deactivated")
-    token = create_access_token({"sub": str(user.id), "role": user.role.value if hasattr(user.role, "value") else str(user.role)})
+    token = create_access_token({"sub": str(user.id), "role": role_val})
     return Token(access_token=token)
 
 

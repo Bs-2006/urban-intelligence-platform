@@ -10,38 +10,57 @@ settings = get_settings()
 
 
 def _send_sync(to_email: str, subject: str, html_body: str, text_body: str | None = None) -> None:
-    if not settings.smtp_host or not settings.smtp_from:
-        logger.warning("SMTP not configured - skipping email to %s (subject: %s)", to_email, subject)
-        logger.info("OTP email fallback - to=%s body=%s", to_email, text_body or html_body)
+    smtp_host = (settings.smtp_host or "").strip()
+    smtp_from = (settings.smtp_from or "").strip() or (settings.smtp_username or "").strip()
+    smtp_username = (settings.smtp_username or "").strip()
+    # Gmail app passwords are displayed with spaces - strip them for SMTP login
+    smtp_password = (settings.smtp_password or "").replace(" ", "").strip()
+
+    if not smtp_host or not smtp_from:
+        logger.error(
+            "SMTP not configured - skipping email to %s (subject: %s). smtp_host=%r smtp_from=%r smtp_username=%r",
+            to_email,
+            subject,
+            smtp_host,
+            smtp_from,
+            smtp_username,
+        )
+        logger.info("OTP email fallback (SMTP not configured) - to=%s body=%s", to_email, text_body or html_body)
         return
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = settings.smtp_from
+    msg["From"] = smtp_from
     msg["To"] = to_email
 
     if text_body:
         msg.attach(MIMEText(text_body, "plain"))
     msg.attach(MIMEText(html_body, "html"))
 
+    server = None
     try:
         # Use SMTP with STARTTLS (587) or SSL (465)
         if settings.smtp_port == 465:
-            server = smtplib.SMTP_SSL(settings.smtp_host, settings.smtp_port, timeout=10)
+            server = smtplib.SMTP_SSL(smtp_host, settings.smtp_port, timeout=15)
         else:
-            server = smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10)
+            server = smtplib.SMTP(smtp_host, settings.smtp_port, timeout=15)
             server.ehlo()
             if settings.smtp_port == 587:
                 server.starttls()
                 server.ehlo()
-        if settings.smtp_username and settings.smtp_password:
-            server.login(settings.smtp_username, settings.smtp_password)
-        server.sendmail(settings.smtp_from, [to_email], msg.as_string())
-        server.quit()
-        logger.info("Email sent to %s", to_email)
+        if smtp_username and smtp_password:
+            server.login(smtp_username, smtp_password)
+        server.sendmail(smtp_from, [to_email], msg.as_string())
+        logger.info("Email sent successfully to %s via %s:%s", to_email, smtp_host, settings.smtp_port)
     except Exception as e:
-        logger.error("Failed to send email to %s: %s", to_email, e)
+        logger.exception("Failed to send email to %s via %s:%s - %s", to_email, smtp_host, settings.smtp_port, e)
         raise
+    finally:
+        if server is not None:
+            try:
+                server.quit()
+            except Exception:
+                pass
 
 
 async def send_email(to_email: str, subject: str, html_body: str, text_body: str | None = None) -> None:

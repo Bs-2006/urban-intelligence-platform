@@ -1,20 +1,20 @@
 ﻿from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.dependencies import get_db, get_current_user
+from app.dependencies import get_db, get_current_website_user
 from app.models.user import User
 from app.schemas.user import UserOut, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("", response_model=list[UserOut], summary="List users (filtered by role)")
+@router.get("", response_model=list[UserOut], summary="List users (filtered by role) - JWT required (admin/worker)")
 async def list_users(
     role: str | None = Query(None, description="Filter by role: citizen|admin|worker|transport_officer"),
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(get_current_website_user),
 ):
     q = select(User)
     if role:
@@ -25,7 +25,7 @@ async def list_users(
 
 
 @router.get("/stats", summary="User stats aggregated by role (for agent)")
-async def get_users_stats(db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+async def get_users_stats(db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
     from sqlalchemy import select
     from app.models.user import User
     from collections import Counter
@@ -35,7 +35,7 @@ async def get_users_stats(db: AsyncSession = Depends(get_db), _=Depends(get_curr
     return {"total": total, "by_role": by_role}
 
 @router.get("/me", response_model=UserOut)
-async def get_me(current_user=Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+async def get_me(current_user=Depends(get_current_website_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.id == int(current_user["sub"])))
     return result.scalar_one()
 
@@ -43,7 +43,7 @@ async def get_me(current_user=Depends(get_current_user), db: AsyncSession = Depe
 @router.patch("/me", response_model=UserOut)
 async def update_me(
     data: UserUpdate,
-    current_user=Depends(get_current_user),
+    current_user=Depends(get_current_website_user),
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(select(User).where(User.id == int(current_user["sub"])))

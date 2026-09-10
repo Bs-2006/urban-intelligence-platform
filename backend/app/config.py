@@ -1,3 +1,4 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -35,7 +36,15 @@ class Settings(BaseSettings):
     otp_resend_cooldown_seconds: int = 60
 
     class Config:
-        env_file = ".env"
+        # Resolve .env relative to this file so it works regardless of CWD.
+        # Tries: backend/.env then project-root/.env ; Docker injects env via env vars anyway.
+        env_file = (
+            str(Path(__file__).resolve().parent.parent / ".env"),
+            str(Path(__file__).resolve().parent.parent.parent / ".env"),
+            ".env",
+            "../.env",
+        )
+        env_file_encoding = "utf-8"
         extra = "allow"
 
 

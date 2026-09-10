@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc
 from typing import Optional
 import json
-from app.dependencies import get_db
+from app.dependencies import get_db, get_current_website_user
 from app.models.vehicle_security import VehicleSecurityEvent
 
 router = APIRouter(prefix="/api/vehicle-security", tags=["Vehicle Security"])
@@ -17,6 +17,7 @@ async def list_events(
     limit: int = Query(50, le=200),
     offset: int = Query(0),
     db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_website_user),
 ):
     q = select(VehicleSecurityEvent).order_by(desc(VehicleSecurityEvent.created_at))
     if bus_id:
@@ -57,7 +58,7 @@ async def list_events(
     return out
 
 @router.get("/{event_id}")
-async def get_event(event_id: int, db: AsyncSession = Depends(get_db)):
+async def get_event(event_id: int, db: AsyncSession = Depends(get_db), _=Depends(get_current_website_user)):
     res = await db.execute(select(VehicleSecurityEvent).where(VehicleSecurityEvent.id==event_id))
     r=res.scalar_one_or_none()
     if not r:
