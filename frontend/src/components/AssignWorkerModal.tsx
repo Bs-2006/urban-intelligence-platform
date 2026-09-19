@@ -62,38 +62,38 @@ export default function AssignWorkerModal({incidentId, incident, onClose, onSucc
     }catch(ex:any){ setErr(ex.response?.data?.detail||ex.message); } finally{ setLoading(false); }
   };
   const modal = (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 overflow-y-auto bg-black/50 backdrop-blur-[1px]" style={{zIndex:9999}}>
+<div className="fixed inset-0 z-[9999] flex items-start justify-center p-4 overflow-y-auto bg-black/50 backdrop-blur-[1px]" style={{zIndex:9999}}>
       <div className="min-h-full flex items-center justify-center w-full py-4">
-      <form onSubmit={submit} className="bg-white rounded-2xl p-6 w-full max-w-md space-y-3 shadow-xl border border-slate-200 my-auto">
-      <h3 className="font-semibold text-lg text-slate-900">Assign Work</h3>
+      <form onSubmit={submit} className="bg-white rounded-2xl p-6 w-full max-w-md space-y-3 shadow-xl border border-surface-border my-auto">
+      <h3 className="font-semibold text-lg text-ink">Assign Work</h3>
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Work Title</label>
-        <input required value={title} onChange={e=>setTitle(e.target.value)} className="w-full border-2 border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"/>
-        <p className="text-xs text-slate-500 mt-1">Auto-filled from incident — editable</p>
+        <label className="block text-xs font-semibold text-ink mb-1">Work Title</label>
+        <input required value={title} onChange={e=>setTitle(e.target.value)} className="w-full border-2 border-surface-border rounded-xl px-3 py-2.5 text-sm focus:border-brand focus:outline-none"/>
+        <p className="text-xs text-ink-muted mt-1">Auto-filled from incident — editable</p>
       </div>
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Assign to Worker</label>
-        {workersLoading ? <div className="text-xs text-slate-500 py-2">Loading workers...</div>
+        <label className="block text-xs font-semibold text-ink mb-1">Assign to Worker</label>
+        {workersLoading ? <div className="text-xs text-ink-muted py-2">Loading workers...</div>
         : workers.length>0 ? (
-          <select required value={assigned_to} onChange={e=>setAssigned(e.target.value)} className="w-full border-2 border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none bg-white">
+          <select required value={assigned_to} onChange={e=>setAssigned(e.target.value)} className="w-full border-2 border-surface-border rounded-xl px-3 py-2.5 text-sm focus:border-brand focus:outline-none bg-white">
             <option value="">Select worker</option>
             {workers.map((w:any)=>(<option key={w.id} value={w.id}>{w.full_name || w.name || w.email || `Worker #${w.id}`} ({w.email})</option>))}
           </select>
         ) : (
           <>
             {workersErr && <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded mb-2">{workersErr}</p>}
-            <input required placeholder="Worker User ID (assigned_to)" value={assigned_to} onChange={e=>setAssigned(e.target.value)} className="w-full border-2 border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" type="number"/>
-            <p className="text-xs text-slate-500 mt-1">No workers found — enter ID manually</p>
+            <input required placeholder="Worker User ID (assigned_to)" value={assigned_to} onChange={e=>setAssigned(e.target.value)} className="w-full border-2 border-surface-border rounded-xl px-3 py-2.5 text-sm focus:border-brand focus:outline-none" type="number"/>
+            <p className="text-xs text-ink-muted mt-1">No workers found — enter ID manually</p>
           </>
         )}
       </div>
-      <input type="datetime-local" value={due_date} onChange={e=>setDue(e.target.value)} className="w-full border-2 border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none"/>
+      <input type="datetime-local" value={due_date} onChange={e=>setDue(e.target.value)} className="w-full border-2 border-surface-border rounded-xl px-3 py-2.5 text-sm focus:border-brand focus:outline-none"/>
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
-        <textarea value={description} onChange={e=>setDesc(e.target.value)} className="w-full border-2 border-slate-300 rounded-xl px-3 py-2.5 text-sm focus:border-blue-500 focus:outline-none" rows={3}/>
+        <label className="block text-xs font-semibold text-ink mb-1">Description</label>
+        <textarea value={description} onChange={e=>setDesc(e.target.value)} className="w-full border-2 border-surface-border rounded-xl px-3 py-2.5 text-sm focus:border-brand focus:outline-none" rows={3}/>
       </div>
       {err&&<p className="text-sm text-red-600 bg-red-50 p-2 rounded">{err}</p>}
-      <div className="flex gap-2 justify-end"><button type="button" onClick={onClose} className="px-4 py-2 border-2 border-slate-300 rounded-full text-sm font-medium hover:bg-slate-50">Cancel</button><button disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 disabled:bg-blue-400">{loading?"Assigning...":"Assign"}</button></div>
+      <div className="flex gap-2 justify-end"><button type="button" onClick={onClose} className="px-4 py-2 border-2 border-surface-border rounded-xl text-sm font-medium hover:bg-surface-page">Cancel</button><button disabled={loading} className="px-4 py-2 bg-brand text-white rounded-xl text-sm font-medium hover:bg-brand-hover disabled:bg-brand-300">{loading?"Assigning...":"Assign"}</button></div>
       </form>
       </div>
     </div>

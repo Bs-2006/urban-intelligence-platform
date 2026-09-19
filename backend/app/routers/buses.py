@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.dependencies import get_db, get_current_user
+from app.dependencies import get_db, RoleRequirement
 from app.models.bus import Bus
 from app.schemas.bus import BusCreate, BusUpdate, BusOut
 
 router = APIRouter(prefix="/buses", tags=["Buses"])
 
 
-@router.post("/", response_model=BusOut, status_code=201)
-async def add_bus(data: BusCreate, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+@router.post("/", response_model=BusOut, status_code=201, summary="Add bus (admin only)")
+async def add_bus(data: BusCreate, db: AsyncSession = Depends(get_db), _=Depends(RoleRequirement("admin"))):
     bus = Bus(**data.model_dump())
     db.add(bus)
     await db.commit()
@@ -23,9 +23,9 @@ async def get_buses(skip: int = 0, limit: int = 50, db: AsyncSession = Depends(g
     return result.scalars().all()
 
 
-@router.patch("/{bus_id}", response_model=BusOut)
+@router.patch("/{bus_id}", response_model=BusOut, summary="Update bus (admin only)")
 async def update_bus(
-    bus_id: int, data: BusUpdate, db: AsyncSession = Depends(get_db), _=Depends(get_current_user)
+    bus_id: int, data: BusUpdate, db: AsyncSession = Depends(get_db), _=Depends(RoleRequirement("admin"))
 ):
     result = await db.execute(select(Bus).where(Bus.id == bus_id))
     bus = result.scalar_one_or_none()

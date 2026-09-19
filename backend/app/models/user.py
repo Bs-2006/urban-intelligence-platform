@@ -5,10 +5,18 @@ from app.database import Base
 
 
 class UserRole(str, enum.Enum):
-    citizen = "citizen"
     admin = "admin"
     worker = "worker"
-    transport_officer = "transport_officer"
+
+
+class WorkerSpecialization(str, enum.Enum):
+    road_maintenance = "road_maintenance"
+    drainage_waterlogging = "drainage_waterlogging"
+    infrastructure = "infrastructure"
+    traffic_management = "traffic_management"
+    traffic_enforcement = "traffic_enforcement"
+    road_safety = "road_safety"
+    traffic_sign_maintenance = "traffic_sign_maintenance"
 
 
 class User(Base):
@@ -19,7 +27,8 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     phone = Column(String, unique=True, nullable=True)
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.citizen)
+    role = Column(Enum(UserRole), nullable=False)
+    specialization = Column(Enum(WorkerSpecialization), nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     otp_hash = Column(String, nullable=True)

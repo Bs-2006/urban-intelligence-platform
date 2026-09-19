@@ -14,7 +14,7 @@ async def chat(body: AgentChatRequest, current_user: dict = Depends(get_current_
     if authorization and authorization.startswith("Bearer "):
         token = authorization.split(" ", 1)[1]
     user_id = str(current_user.get("sub"))
-    role = current_user.get("role", "citizen")
+    role = current_user.get("role", "admin")
     result = await handle_chat(body.message, body.session_id, user_id, role, token)
     return AgentChatResponse(**result)
 

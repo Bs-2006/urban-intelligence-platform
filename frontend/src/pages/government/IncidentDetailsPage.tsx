@@ -48,50 +48,50 @@ export default function IncidentDetailsPage(){
   return <><Topbar title={`Incident #${data.id}`}/>
     <div className="p-6 grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-4">
-        <div className="bg-white border rounded-xl p-6">
-          <div className="flex gap-2 items-center"><h2 className="font-bold text-lg">{data.title}</h2><StatusBadge status={data.status}/><SeverityBadge severity={data.severity}/></div>
-          <p className="text-sm text-gray-600 mt-2">{data.description}</p>
+<div className="bg-white border border-surface-border rounded-xl p-6 shadow-sm">
+          <div className="flex gap-2 items-center"><h2 className="font-bold text-lg text-ink">{data.title}</h2><StatusBadge status={data.status}/><SeverityBadge severity={data.severity}/></div>
+          <p className="text-sm text-ink-muted mt-2">{data.description}</p>
           <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-            <div><span className="text-gray-500">Issue Type</span><p className="font-medium">{data.incident_type}</p></div>
-            <div><span className="text-gray-500">Source</span><p>{data.source==="ai"?"AI Detected":"Citizen Report"}</p></div>
-            <div><span className="text-gray-500">Location</span><p>{data.location_name||data.address}</p></div>
-            <div><span className="text-gray-500">Lat/Lng</span><p>{data.latitude}, {data.longitude}</p></div>
-            <div><span className="text-gray-500">Bus / Route</span><p>{data.bus_id||"-"} / {data.route_id||"-"}</p></div>
-            <div><span className="text-gray-500">AI Confidence</span><p>{data.ai_confidence??"-"}</p></div>
-            <div><span className="text-gray-500">Created</span><p>{fmtDate(data.created_at)}</p></div>
-            <div><span className="text-gray-500">Occurred</span><p>{fmtDate(data.occurred_at)}</p></div>
+            <div><span className="text-ink-muted">Issue Type</span><p className="font-medium text-ink">{data.incident_type}</p></div>
+            <div><span className="text-ink-muted">Source</span><p className="text-ink">{data.source==="ai"?"AI Detected":"Citizen Report"}</p></div>
+            <div><span className="text-ink-muted">Location</span><p className="text-ink">{data.location_name||data.address}</p></div>
+            <div><span className="text-ink-muted">Lat/Lng</span><p className="text-ink">{data.latitude}, {data.longitude}</p></div>
+            <div><span className="text-ink-muted">Bus / Route</span><p className="text-ink">{data.bus_id||"-"} / {data.route_id||"-"}</p></div>
+            <div><span className="text-ink-muted">AI Confidence</span><p className="text-ink">{data.ai_confidence??"-"}</p></div>
+            <div><span className="text-ink-muted">Created</span><p className="text-ink">{fmtDate(data.created_at)}</p></div>
+            <div><span className="text-ink-muted">Occurred</span><p className="text-ink">{fmtDate(data.occurred_at)}</p></div>
           </div>
-          {data.image_url ? <img src={data.image_url} alt="evidence" className="mt-4 rounded max-h-80 w-full object-cover border" onError={(e:any)=>{e.currentTarget.style.display="none"; const sib=e.currentTarget.nextElementSibling; if(sib) (sib as HTMLElement).style.display="block";}} /> : null}
-          {data.image_url ? <div style={{display:"none"}} className="mt-4 border-2 border-amber-200 bg-amber-50 rounded-xl p-3 text-sm text-amber-800">Evidence image failed to load - URL may not be publicly accessible. Key: {data.image_key||"-"}</div> : <div className="mt-4 border-dashed border-2 border-slate-200 rounded-xl p-4 text-center text-sm text-slate-500">No evidence image</div>}
-          <div className="mt-3"><label className="text-sm">Upload evidence<input type="file" accept="image/*" onChange={onFile} className="ml-2 text-sm"/></label></div>
+          {data.image_url ? <img src={data.image_url} alt="evidence" className="mt-4 rounded max-h-80 w-full object-cover border border-surface-border" onError={(e:any)=>{e.currentTarget.style.display="none"; const sib=e.currentTarget.nextElementSibling; if(sib) (sib as HTMLElement).style.display="block";}} /> : null}
+          {data.image_url ? <div style={{display:"none"}} className="mt-4 border-2 border-amber-200 bg-amber-50 rounded-xl p-3 text-sm text-amber-800">Evidence image failed to load - URL may not be publicly accessible. Key: {data.image_key||"-"}</div> : <div className="mt-4 border-dashed border-2 border-surface-border rounded-xl p-4 text-center text-sm text-ink-muted">No evidence image</div>}
+          <div className="mt-3"><label className="text-sm text-ink">Upload evidence<input type="file" accept="image/*" onChange={onFile} className="ml-2 text-sm"/></label></div>
         </div>
-        <div className="h-64 rounded-xl overflow-hidden border">
+        <div className="h-64 rounded-xl overflow-hidden border border-surface-border">
           <MapContainer center={[data.latitude,data.longitude]} zoom={14} className="h-full w-full" scrollWheelZoom={false}><TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"/><Marker position={[data.latitude,data.longitude]}/></MapContainer>
         </div>
       </div>
       <div className="space-y-4">
-        <div className="bg-white border rounded-xl p-5">
-          <h3 className="font-semibold">Manager Actions</h3>
+        <div className="bg-white border border-surface-border rounded-xl p-5 shadow-sm">
+          <h3 className="font-semibold text-ink">Manager Actions</h3>
           {existing && !cancelled ? (
-            <div className="mt-3 border-2 border-green-200 bg-green-50 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2"><span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"/><span className="text-sm font-extrabold text-green-800 tracking-wide">WORK ASSIGNED</span></div>
-              <div className="text-sm"><span className="text-slate-500">Assigned To:</span><p className="font-semibold text-slate-900">{workersMap[String(existing.assigned_to)] || `Worker #${existing.assigned_to}`}</p></div>
-              <div className="text-sm"><span className="text-slate-500">Work Order:</span><p className="font-semibold text-slate-900">#{existing.id}</p></div>
-              <div className="text-sm"><span className="text-slate-500">Work Status:</span><p className="font-semibold capitalize"><StatusBadge status={existing.status}/></p></div>
-              {completed && <p className="text-xs text-green-700 font-medium">Completed — no further action needed</p>}
-              {active && <p className="text-xs text-slate-600">Work is active — duplicate assignment disabled</p>}
-              <Link to={`/work-orders/${existing.id}`} className="inline-flex mt-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-full text-sm font-semibold hover:bg-slate-50">View Work Order</Link>
+            <div className="mt-3 border-2 border-brand-200 bg-brand-50 rounded-xl p-4 space-y-2">
+              <div className="flex items-center gap-2"><span className="w-2 h-2 bg-brand rounded-full animate-pulse"/><span className="text-sm font-extrabold text-brand-800 tracking-wide">WORK ASSIGNED</span></div>
+              <div className="text-sm"><span className="text-ink-muted">Assigned To:</span><p className="font-semibold text-ink">{workersMap[String(existing.assigned_to)] || `Worker #${existing.assigned_to}`}</p></div>
+              <div className="text-sm"><span className="text-ink-muted">Work Order:</span><p className="font-semibold text-ink">#{existing.id}</p></div>
+              <div className="text-sm"><span className="text-ink-muted">Work Status:</span><p className="font-semibold capitalize"><StatusBadge status={existing.status}/></p></div>
+              {completed && <p className="text-xs text-brand-700 font-medium">Completed — no further action needed</p>}
+              {active && <p className="text-xs text-ink-muted">Work is active — duplicate assignment disabled</p>}
+              <Link to={`/work-orders/${existing.id}`} className="inline-flex mt-2 px-4 py-2 bg-white border-2 border-surface-border rounded-xl text-sm font-semibold text-ink hover:bg-surface-subtle">View Work Order</Link>
               {cancelled && <p className="text-xs text-amber-700 mt-2">Previous work was cancelled — you may reassign</p>}
             </div>
           ) : null}
-          {cancelled && <div className="mt-3"><button onClick={()=>setShowAssign(true)} className="w-full bg-blue-600 text-white py-2.5 rounded-full font-semibold text-sm hover:bg-blue-700">Reassign Work</button></div>}
-          {showAssignBtn && !existing && <button onClick={()=>setShowAssign(true)} className="w-full mt-3 bg-blue-600 text-white py-2.5 rounded-full font-semibold text-sm hover:bg-blue-700">Assign Work</button>}
-          {existing && !cancelled && !completed && active && <div className="mt-3 text-xs text-slate-500 text-center">Duplicate assignment prevented — work already exists</div>}
+          {cancelled && <div className="mt-3"><button onClick={()=>setShowAssign(true)} className="w-full bg-brand text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-brand-hover">Reassign Work</button></div>}
+          {showAssignBtn && !existing && <button onClick={()=>setShowAssign(true)} className="w-full mt-3 bg-brand text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-brand-hover">Assign Work</button>}
+          {existing && !cancelled && !completed && active && <div className="mt-3 text-xs text-ink-muted text-center">Duplicate assignment prevented — work already exists</div>}
           <div className="mt-4 space-y-2">
-            <label className="text-sm">Status<select value={edit.status} onChange={e=>setEdit({...edit,status:e.target.value})} className="w-full border rounded px-2 py-1 mt-1">{["reported","pending","in_progress","resolved","rejected","closed"].map(s=><option key={s} value={s}>{s}</option>)}</select></label>
-            <label className="text-sm">Severity<select value={edit.severity} onChange={e=>setEdit({...edit,severity:e.target.value})} className="w-full border rounded px-2 py-1 mt-1">{["low","medium","high","critical"].map(s=><option key={s} value={s}>{s}</option>)}</select></label>
-            <label className="text-sm">Description<textarea value={edit.description||""} onChange={e=>setEdit({...edit,description:e.target.value})} className="w-full border rounded px-2 py-1 mt-1"/></label>
-            <button onClick={save} className="w-full border py-2 rounded-lg">Save Changes</button>
+            <label className="text-sm text-ink">Status<select value={edit.status} onChange={e=>setEdit({...edit,status:e.target.value})} className="w-full border border-surface-border bg-white rounded-lg px-2 py-1.5 mt-1 text-ink">{["reported","pending","in_progress","resolved","rejected","closed"].map(s=><option key={s} value={s}>{s}</option>)}</select></label>
+            <label className="text-sm text-ink">Severity<select value={edit.severity} onChange={e=>setEdit({...edit,severity:e.target.value})} className="w-full border border-surface-border bg-white rounded-lg px-2 py-1.5 mt-1 text-ink">{["low","medium","high","critical"].map(s=><option key={s} value={s}>{s}</option>)}</select></label>
+            <label className="text-sm text-ink">Description<textarea value={edit.description||""} onChange={e=>setEdit({...edit,description:e.target.value})} className="w-full border border-surface-border bg-white rounded-lg px-2 py-1.5 mt-1 text-ink"/></label>
+            <button onClick={save} className="w-full bg-brand text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-brand-hover">Save Changes</button>
           </div>
         </div>
       </div>

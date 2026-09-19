@@ -16,6 +16,6 @@ export default function MapPage(){
     return ()=> clearInterval(t);
   },[]);
   return <><Topbar title="Live Map"/>
-    <div className="p-6">{loading? <LoadingSpinner/> : <IncidentMap incidents={incidents} stands={stands}/>}<p className="text-xs text-gray-400 mt-2">Click marker ? View incident details. Bus stands shown if endpoint available.</p></div>
+    <div className="p-6">{loading? <LoadingSpinner/> : <IncidentMap incidents={incidents} stands={stands}/>}<p className="text-xs text-ink-subtle mt-2">Click marker → View incident details. Bus stands shown if endpoint available.</p></div>
   </>;
 }

@@ -1,16 +1,16 @@
 from app.agent.errors.agent_errors import PermissionDeniedError
 
 MATRIX = {
-    "list_incidents": ["citizen", "admin", "worker", "transport_officer"],
-    "get_incident": ["citizen", "admin", "worker", "transport_officer"],
-    "get_incident_stats": ["citizen", "admin", "worker", "transport_officer"],
-    "list_users": ["citizen", "admin", "worker", "transport_officer"],
-    "list_employees": ["citizen", "admin", "worker", "transport_officer"],
-    "list_workers": ["citizen", "admin", "worker", "transport_officer"],
-    "get_users_stats": ["citizen", "admin", "worker", "transport_officer"],
-    "get_me": ["citizen", "admin", "worker", "transport_officer"],
-    "list_work_orders": ["citizen", "admin", "worker", "transport_officer"],
-    "get_work_stats": ["citizen", "admin", "worker", "transport_officer"],
+    "list_incidents": ["admin", "worker"],
+    "get_incident": ["admin", "worker"],
+    "get_incident_stats": ["admin", "worker"],
+    "list_users": ["admin", "worker"],
+    "list_employees": ["admin", "worker"],
+    "list_workers": ["admin", "worker"],
+    "get_users_stats": ["admin", "worker"],
+    "get_me": ["admin", "worker"],
+    "list_work_orders": ["admin", "worker"],
+    "get_work_stats": ["admin", "worker"],
 }
 
 def check_permission(tool_name: str, role: str):

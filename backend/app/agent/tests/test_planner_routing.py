@@ -7,7 +7,7 @@ from app.agent.types.agent_types import Intent
 
 async def test_show_pending_incidents_routes_to_list():
     msg = "Show me the pending incidents"
-    p = await plan(msg, "citizen", [])
+    p = await plan(msg, "worker", [])
     assert p.intent == Intent.LIST_INCIDENTS.value, f"Expected LIST_INCIDENTS, got {p.intent}"
     assert p.tool_name == "list_incidents", f"Expected list_incidents, got {p.tool_name}"
     # Should have status pending, but NOT be stats
@@ -17,7 +17,7 @@ async def test_show_pending_incidents_routes_to_list():
 
 async def test_how_many_pending_potholes_reported_by_citizens_routes_to_stats():
     msg = "How many pending potholes were reported by citizens?"
-    p = await plan(msg, "citizen", [])
+    p = await plan(msg, "worker", [])
     assert p.intent == Intent.GET_INCIDENT_STATS.value, f"Expected GET_INCIDENT_STATS, got {p.intent}"
     assert p.tool_name == "get_incident_stats"
     assert p.arguments.get("incident_type") == "pothole"
@@ -33,7 +33,7 @@ async def test_listing_never_calls_stats_merely_on_pending_pothole_citizen():
         "Show me potholes reported by citizen",
         "List garbage incidents",
     ]:
-        p = await plan(msg, "citizen", [])
+        p = await plan(msg, "worker", [])
         assert p.tool_name == "list_incidents", f"Message '{msg}' incorrectly routed to {p.tool_name}"
 
 async def test_count_language_routes_to_stats():
@@ -44,7 +44,7 @@ async def test_count_language_routes_to_stats():
         "Breakdown of incidents by status",
         "Number of potholes reported by citizens",
     ]:
-        p = await plan(msg, "citizen", [])
+        p = await plan(msg, "worker", [])
         assert p.tool_name == "get_incident_stats", f"Message '{msg}' should route to stats, got {p.tool_name}"
 
 async def test_new_chat_does_not_reuse_previous_tool_result():
@@ -55,7 +55,7 @@ async def test_new_chat_does_not_reuse_previous_tool_result():
     ]
     # New request is LIST, should not inherit pothole from history
     msg = "Show me the pending incidents"
-    p = await plan(msg, "citizen", history)
+    p = await plan(msg, "worker", history)
     assert p.tool_name == "list_incidents", f"Expected list_incidents, got {p.tool_name}"
     # Should NOT have pothole filter from previous history
     assert p.arguments.get("incident_type") is None, f"Did not expect pothole from history, got {p.arguments}"
@@ -91,31 +91,31 @@ async def test_no_write_tools_registered():
 
 # Required dashboard questions - must route to read-only intents/tools
 async def test_show_pending_incidents():
-    p = await plan("Show pending incidents", "citizen", [])
+    p = await plan("Show pending incidents", "worker", [])
     assert p.tool_name == "list_incidents" and p.arguments.get("status") == "pending"
 
 async def test_show_resolved_incidents():
-    p = await plan("Show resolved incidents", "citizen", [])
+    p = await plan("Show resolved incidents", "worker", [])
     assert p.tool_name == "list_incidents" and p.arguments.get("status") == "resolved"
 
 async def test_show_ai_detected_incidents():
-    p = await plan("Show AI detected incidents", "citizen", [])
+    p = await plan("Show AI detected incidents", "worker", [])
     assert p.tool_name == "list_incidents" and p.arguments.get("source") == "ai"
 
 async def test_show_citizen_reported_incidents():
-    p = await plan("Show citizen reported incidents", "citizen", [])
+    p = await plan("Show citizen reported incidents", "worker", [])
     assert p.tool_name == "list_incidents" and p.arguments.get("source") == "citizen"
 
 async def test_show_high_severity_incidents():
-    p = await plan("Show high severity incidents", "citizen", [])
+    p = await plan("Show high severity incidents", "worker", [])
     assert p.tool_name == "list_incidents" and p.arguments.get("severity") == "high"
 
 async def test_how_many_incidents_are_there():
-    p = await plan("How many incidents are there?", "citizen", [])
+    p = await plan("How many incidents are there?", "worker", [])
     assert p.tool_name == "get_incident_stats"
 
 async def test_how_many_pending_potholes_are_there():
-    p = await plan("How many pending potholes are there?", "citizen", [])
+    p = await plan("How many pending potholes are there?", "worker", [])
     assert p.tool_name == "get_incident_stats"
     assert p.arguments.get("incident_type") == "pothole"
     assert p.arguments.get("status") == "pending"
@@ -191,7 +191,7 @@ async def test_natural_incident_variations_routing():
         "Show me the pending incidents",
     ]
     for msg in list_cases:
-        p = await plan(msg, "citizen", [])
+        p = await plan(msg, "worker", [])
         assert p.tool_name == "list_incidents", f"'{msg}' should be LIST_INCIDENTS, got {p.tool_name} ({p.intent})"
 
 async def test_count_variations_routing_to_stats():
@@ -201,7 +201,7 @@ async def test_count_variations_routing_to_stats():
         "How many pending potholes were reported by citizens?",
     ]
     for msg in stats_cases:
-        p = await plan(msg, "citizen", [])
+        p = await plan(msg, "worker", [])
         assert p.tool_name == "get_incident_stats", f"'{msg}' should be GET_INCIDENT_STATS, got {p.tool_name}"
 
 async def test_natural_variations_never_route_to_unknown():
@@ -211,5 +211,5 @@ async def test_natural_variations_never_route_to_unknown():
         "Tell me about the reported problems",
         "What is happening in the city?",
     ]:
-        p = await plan(msg, "citizen", [])
+        p = await plan(msg, "worker", [])
         assert p.intent != "UNKNOWN" and p.tool_name is not None, f"'{msg}' incorrectly routed to UNKNOWN"

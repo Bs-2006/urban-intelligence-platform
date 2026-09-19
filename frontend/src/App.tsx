@@ -3,11 +3,12 @@ import { AuthProvider } from "./context/AuthContext";
 import { useAuth } from "./hooks/useAuth";
 import PublicLayout from "./layouts/PublicLayout";
 import GovernmentLayout from "./layouts/GovernmentLayout";
-import LandingPage from "./pages/public/LandingPage";
+import LandingWithIntro from "./pages/public/LandingWithIntro";
 import ReportIssuePage from "./pages/public/ReportIssuePage";
 import ReportSuccessPage from "./pages/public/ReportSuccessPage";
 import TrackComplaintPage from "./pages/public/TrackComplaintPage";
 import LoginPage from "./pages/auth/LoginPage";
+import CreateAccountPage from "./pages/auth/CreateAccountPage";
 import VerifyOtpPage from "./pages/auth/VerifyOtpPage";
 import DashboardPage from "./pages/government/DashboardPage";
 import IncidentsPage from "./pages/government/IncidentsPage";
@@ -24,6 +25,7 @@ import AssistantPage from "./pages/government/AssistantPage";
 import WorkerDashboardPage from "./pages/worker/WorkerDashboardPage";
 import MyWorkPage from "./pages/worker/MyWorkPage";
 import WorkDetailsPage from "./pages/worker/WorkDetailsPage";
+import WorkerProfilePage from "./pages/worker/ProfilePage";
 import LoadingSpinner from "./components/LoadingSpinner";
 
 function Protected({roles, children}:{roles?:string[]; children:React.ReactNode}){
@@ -39,16 +41,18 @@ export default function App(){
     <BrowserRouter>
       <Routes>
         <Route element={<PublicLayout/>}>
-          <Route path="/" element={<LandingPage/>}/>
+          <Route path="/" element={<LandingWithIntro/>}/>
           <Route path="/report" element={<ReportIssuePage/>}/>
           <Route path="/report-success" element={<ReportSuccessPage/>}/>
           <Route path="/track" element={<TrackComplaintPage/>}/>
         </Route>
         <Route path="/login" element={<LoginPage/>}/>
+        <Route path="/register" element={<CreateAccountPage/>}/>
         <Route path="/verify-otp" element={<VerifyOtpPage/>}/>
 
-        <Route element={<Protected roles={["admin","transport_officer"]}><GovernmentLayout/></Protected>}>
-          <Route path="/dashboard" element={<DashboardPage/>}/>
+        {/* Admin portal — admin only */}
+<Route element={<Protected roles={["admin"]}><GovernmentLayout/></Protected>}>
+        <Route path="/dashboard" element={<DashboardPage/>}/>
           <Route path="/ai-monitoring" element={<AiMonitoringPage/>}/>
           <Route path="/assistant" element={<AssistantPage/>}/>
           <Route path="/incidents" element={<IncidentsPage/>}/>
@@ -63,10 +67,12 @@ export default function App(){
           <Route path="/profile" element={<ProfilePage/>}/>
         </Route>
 
-        <Route element={<Protected roles={["worker","admin","transport_officer"]}><GovernmentLayout/></Protected>}>
-          <Route path="/worker" element={<WorkerDashboardPage/>}/>
+        {/* Worker portal — worker only */}
+<Route element={<Protected roles={["worker"]}><GovernmentLayout/></Protected>}>
+        <Route path="/worker" element={<WorkerDashboardPage/>}/>
           <Route path="/worker/work" element={<MyWorkPage/>}/>
           <Route path="/worker/work/:id" element={<WorkDetailsPage/>}/>
+          <Route path="/worker/profile" element={<WorkerProfilePage/>}/>
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace/>}/>
