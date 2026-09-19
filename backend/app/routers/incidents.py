@@ -1,6 +1,7 @@
 ﻿from fastapi import APIRouter, Depends, Query, UploadFile, File, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.dependencies import get_db, get_current_user
+from sqlalchemy import select
+from app.dependencies import get_db, get_current_user, get_optional_user, RoleRequirement
 from app.schemas.incident import IncidentCreate, IncidentUpdate, IncidentOut
 from app.services.incident_service import (
     create_incident,
@@ -9,6 +10,7 @@ from app.services.incident_service import (
     update_incident,
     delete_incident,
 )
+from app.models.work import WorkOrder
 from app.services.supabase_storage import upload_incident_image
 
 router = APIRouter(prefix="/incidents", tags=["Incidents"])
@@ -25,7 +27,7 @@ async def add_incident(
     return await create_incident(db, data, created_by=int(current_user["sub"]))
 
 
-@router.get("/", response_model=list[IncidentOut])
+@router.get("/", response_model=list[IncidentOut], summary="List incidents (admin only)")
 async def get_incidents(
     skip: int = 0,
     limit: int = 50,
@@ -40,12 +42,21 @@ async def get_incidents(
     source: str | None = Query(None, description="Filter by source: citizen | ai"),
     reported_by: int | None = Query(None, description="Filter by reported_by user id"),
     db: AsyncSession = Depends(get_db),
+    _=Depends(RoleRequirement("admin")),
 ):
     return await list_incidents(db, skip, limit, incident_type, category, status, severity, bus_id, source, reported_by)
 
 
-@router.get("/stats/summary", summary="Incident stats aggregated by status/source/type/severity (for agent)")
-async def get_incident_stats(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db)):
+@router.get("/stats/summary", summary="Incident stats aggregated by status/source/type/severity (admin only)")
+async def get_incident_stats(
+    incident_type: str | None = None,
+    status: str | None = None,
+    severity: str | None = None,
+    source: str | None = None,
+    bus_id: int | None = None,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(RoleRequirement("admin")),
+):
     from sqlalchemy import select, func
     from app.models.incident import Incident
     q = select(Incident)
@@ -64,40 +75,63 @@ async def get_incident_stats(incident_type: str | None = None, status: str | Non
     return {"total": total, "by_status": by_status, "by_source": by_source, "by_type": by_type, "by_severity": by_severity}
 
 @router.get("/stats", include_in_schema=False)
-async def get_incident_stats_alias(incident_type: str | None = None, status: str | None = None, severity: str | None = None, source: str | None = None, bus_id: int | None = None, db: AsyncSession = Depends(get_db)):
+async def get_incident_stats_alias(
+    incident_type: str | None = None,
+    status: str | None = None,
+    severity: str | None = None,
+    source: str | None = None,
+    bus_id: int | None = None,
+    db: AsyncSession = Depends(get_db),
+    _=Depends(RoleRequirement("admin")),
+):
     return await get_incident_stats(incident_type, status, severity, source, bus_id, db)
 
-@router.get("/{incident_id}", response_model=IncidentOut)
-async def get_incident_by_id(incident_id: int, db: AsyncSession = Depends(get_db)):
-    return await get_incident(db, incident_id)
+@router.get("/{incident_id}", response_model=IncidentOut, summary="Get incident (workers: only incidents linked to their work orders)")
+async def get_incident_by_id(
+    incident_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_optional_user),
+):
+    incident = await get_incident(db, incident_id)
+    # A worker may only read an incident if it is linked to one of their assigned work orders.
+    if current_user and current_user.get("role") == "worker":
+        linked = await db.execute(
+            select(WorkOrder).where(
+                WorkOrder.incident_id == incident_id,
+                WorkOrder.assigned_to == int(current_user["sub"]),
+            )
+        )
+        if linked.scalar_one_or_none() is None:
+            raise HTTPException(status_code=404, detail="Incident not found")
+    return incident
 
 
-@router.patch("/{incident_id}", response_model=IncidentOut)
+@router.patch("/{incident_id}", response_model=IncidentOut, summary="Update incident (admin only)")
 async def patch_incident(
     incident_id: int,
     data: IncidentUpdate,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(RoleRequirement("admin")),
 ):
     return await update_incident(db, incident_id, data)
 
 
-@router.delete("/{incident_id}", status_code=204)
+@router.delete("/{incident_id}", status_code=204, summary="Delete incident (admin only)")
 async def remove_incident(
     incident_id: int,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(RoleRequirement("admin")),
 ):
     await delete_incident(db, incident_id)
     return None
 
 
-@router.post("/{incident_id}/image", response_model=IncidentOut, summary="Upload incident image to Supabase Storage")
+@router.post("/{incident_id}/image", response_model=IncidentOut, summary="Upload incident image to Supabase Storage (admin only)")
 async def upload_incident_image_endpoint(
     incident_id: int,
     file: UploadFile = File(..., description="Image file (jpeg/png/webp/gif, max 5MB)"),
     db: AsyncSession = Depends(get_db),
-    current_user=Depends(get_current_user),
+    current_user=Depends(RoleRequirement("admin")),
 ):
     # Minimal validation: must be image
     if not file.content_type or not file.content_type.startswith("image/"):

@@ -74,23 +74,15 @@ def _format_users_stats(data: dict) -> str:
         return "There are no users found."
     total = data.get("total", 0)
     by_role = data.get("by_role", {}) or {}
-    # Ensure all roles present
-    citizen = by_role.get("citizen", 0)
-    worker = by_role.get("worker", 0)
     admin = by_role.get("admin", 0)
-    transport = by_role.get("transport_officer", 0)
+    worker = by_role.get("worker", 0)
     if total == 0:
         return "There are no users found."
     lines = [f"There are {total} users in the system:"]
-    if citizen:
-        lines.append(f"• {citizen} citizens")
-    if worker:
-        lines.append(f"• {worker} employees")
     if admin:
-        lines.append(f"• {admin} admin")
-    if transport:
-        lines.append(f"• {transport} transport officers")
-    # If no role breakdown, just total
+        lines.append(f"• {admin} admins")
+    if worker:
+        lines.append(f"• {worker} workers")
     if len(lines) == 1:
         return f"There are {total} users in the system."
     return "\n".join(lines)

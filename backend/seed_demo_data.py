@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
 from app.database import AsyncSessionLocal, engine, Base
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, WorkerSpecialization
 from app.models.route import Route
 from app.models.bus import Bus
 from app.models.bus_stand import BusStand
@@ -40,10 +40,10 @@ Bhimavaram_COORDS = [
 
 SEED_USERS = [
     dict(email="admin@urban.local", full_name="City Administrator", role=UserRole.admin, phone="9000000001", password="Admin@123"),
-    dict(email="manager@urban.local", full_name="Transport Officer Rao", role=UserRole.transport_officer, phone="9000000002", password="Manager@123"),
-    dict(email="worker1@urban.local", full_name="Ravi Kumar (Field Crew)", role=UserRole.worker, phone="9000000003", password="Worker@123"),
-    dict(email="worker2@urban.local", full_name="Sita Devi (Field Crew)", role=UserRole.worker, phone="9000000004", password="Worker@123"),
-    dict(email="citizen@urban.local", full_name="Demo Citizen", role=UserRole.citizen, phone="9000000005", password="Citizen@123"),
+    dict(email="worker1@urban.local", full_name="Ravi Kumar (Road)", role=UserRole.worker, specialization=WorkerSpecialization.road_maintenance, phone="9000000002", password="Worker@123"),
+    dict(email="worker2@urban.local", full_name="Sita Devi (Drainage)", role=UserRole.worker, specialization=WorkerSpecialization.drainage_waterlogging, phone="9000000003", password="Worker@123"),
+    dict(email="worker3@urban.local", full_name="Anil Rao (Traffic)", role=UserRole.worker, specialization=WorkerSpecialization.traffic_management, phone="9000000004", password="Worker@123"),
+    dict(email="worker4@urban.local", full_name="Meera Nair (Safety)", role=UserRole.worker, specialization=WorkerSpecialization.road_safety, phone="9000000005", password="Worker@123"),
 ]
 
 SEED_ROUTES = [
@@ -109,6 +109,7 @@ async def get_or_create_user(session, data):
         phone=data["phone"],
         hashed_password=hash_password(data["password"]),
         role=data["role"],
+        specialization=data.get("specialization"),
         is_active=True,
         is_verified=True,
     )
@@ -197,10 +198,10 @@ async def main():
             reported_by = None
             created_by = None
             if raw["source"] == IncidentSource.citizen:
-                citizen = all_users.get("citizen@urban.local")
-                if citizen:
-                    reported_by = citizen.id
-                    created_by = citizen.id
+                reporter = all_users.get("worker1@urban.local")
+                if reporter:
+                    reported_by = reporter.id
+                    created_by = reporter.id
 
             inc = Incident(
                 incident_type=raw["incident_type"],
@@ -234,7 +235,7 @@ async def main():
         statuses = [WorkStatus.assigned, WorkStatus.in_progress, WorkStatus.completed, WorkStatus.cancelled]
         worker1 = all_users.get("worker1@urban.local")
         worker2 = all_users.get("worker2@urban.local")
-        manager = all_users.get("manager@urban.local") or all_users.get("admin@urban.local")
+        manager = all_users.get("admin@urban.local")
         workers = [w for w in [worker1, worker2] if w]
         work_created = 0
         for i, inc in enumerate(incidents[:8]):

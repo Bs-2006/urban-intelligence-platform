@@ -11,6 +11,7 @@ except Exception as _e:
     agent_router = None  # type: ignore
 import app.models.bus_observation  # noqa: ensure table registered for create_all
 import app.models.vehicle_security  # noqa
+import app.models.work_evidence  # noqa
 
 settings = get_settings()
 

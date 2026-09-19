@@ -6,6 +6,7 @@ VALID_SEVERITIES = {"low","medium","high","critical"}
 VALID_STATUSES = {"reported","pending","in_progress","resolved","rejected","closed"}
 VALID_WORK_STATUSES = {"assigned","in_progress","completed","cancelled"}
 VALID_SOURCES = {"citizen","ai"}
+VALID_ROLES = {"admin", "worker"}
 
 def _is_valid_date(s: str) -> bool:
     try:
@@ -27,5 +28,5 @@ def validate(tool_name: str, args: dict):
             raise ValidationError("invalid incident_type")
         if args.get("status"):
             pass
-        if tool_name in ("list_users","list_employees","list_workers") and args.get("role") and args["role"] not in {"citizen","admin","worker","transport_officer"}:
-            raise ValidationError("role must be citizen|admin|worker|transport_officer")
+        if tool_name in ("list_users","list_employees","list_workers") and args.get("role") and args["role"] not in VALID_ROLES:
+            raise ValidationError("role must be admin|worker")

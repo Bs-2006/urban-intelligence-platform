@@ -45,6 +45,6 @@ async def get_users_stats(args: dict, ctx):
 
 register("get_me", get_me, "Get own profile")
 register("list_users", list_users, "List users with optional role filter")
-register("list_employees", list_employees, "List employees with role=worker")
+register("list_employees", list_employees, "List workers with role=worker")
 register("list_workers", list_employees, "List workers with role=worker (alias for list_employees)")
 register("get_users_stats", get_users_stats, "Get user stats aggregated by role")

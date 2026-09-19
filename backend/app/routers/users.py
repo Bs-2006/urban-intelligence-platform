@@ -1,31 +1,34 @@
 ﻿from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.dependencies import get_db, get_current_user
+from app.dependencies import get_db, get_current_user, RoleRequirement
 from app.models.user import User
 from app.schemas.user import UserOut, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-@router.get("", response_model=list[UserOut], summary="List users (filtered by role)")
+@router.get("", response_model=list[UserOut], summary="List users (admin only)")
 async def list_users(
-    role: str | None = Query(None, description="Filter by role: citizen|admin|worker|transport_officer"),
+    role: str | None = Query(None, description="Filter by role: admin|worker"),
+    specialization: str | None = Query(None, description="Filter by specialization (worker only)"),
     skip: int = 0,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(RoleRequirement("admin")),
 ):
     q = select(User)
     if role:
         q = q.where(User.role == role)
+    if specialization:
+        q = q.where(User.specialization == specialization)
     q = q.offset(skip).limit(limit).order_by(User.id)
     result = await db.execute(q)
     return list(result.scalars().all())
 
 
-@router.get("/stats", summary="User stats aggregated by role (for agent)")
-async def get_users_stats(db: AsyncSession = Depends(get_db), _=Depends(get_current_user)):
+@router.get("/stats", summary="User stats aggregated by role (admin only)")
+async def get_users_stats(db: AsyncSession = Depends(get_db), _=Depends(RoleRequirement("admin"))):
     from sqlalchemy import select
     from app.models.user import User
     from collections import Counter

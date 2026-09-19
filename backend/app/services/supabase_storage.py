@@ -54,12 +54,53 @@ def build_incident_image_key(filename: str, incident_id: int) -> str:
     return f"incidents/{incident_id}/{safe_name}"
 
 
+def build_work_evidence_image_key(filename: str, work_order_id: int) -> str:
+    ext = filename.rsplit(".", 1)[-1].lower() if filename and "." in filename else "jpg"
+    if ext not in ALLOWED_EXTENSIONS:
+        ext = "jpg"
+    unique = uuid.uuid4().hex[:12]
+    safe_name = f"{unique}.{ext}"
+    return f"work/{work_order_id}/{safe_name}"
+
+
 def get_public_url(image_key: str) -> str | None:
     if not image_key or not _supabase_enabled():
         return None
     base = settings.supabase_url.rstrip("/")
     bucket = settings.supabase_bucket
     return f"{base}/storage/v1/object/public/{bucket}/{image_key.lstrip('/')}"
+
+
+async def upload_work_evidence_image(file_bytes: bytes, filename: str, work_order_id: int, content_type: str) -> str:
+    if len(file_bytes) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail=f"File too large. Max {MAX_FILE_SIZE // (1024*1024)} MB.")
+    _validate_image(content_type, filename)
+    image_key = build_work_evidence_image_key(filename, work_order_id)
+
+    if not _supabase_enabled():
+        return image_key
+
+    url = f"{settings.supabase_url.rstrip('/')}/storage/v1/object/{settings.supabase_bucket}/{image_key}"
+    headers = {
+        "apikey": settings.supabase_key,
+        "Authorization": f"Bearer {settings.supabase_key}",
+        "Content-Type": content_type or "image/jpeg",
+        "x-upsert": "true",
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, content=file_bytes, headers=headers)
+            if resp.status_code not in (200, 201):
+                import logging
+                logging.getLogger(__name__).warning("Supabase evidence upload failed %s: %s – storing key locally", resp.status_code, resp.text[:300])
+                return image_key
+    except HTTPException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning("Supabase evidence upload exception %s – storing key locally", e)
+        return image_key
+    return image_key
 
 
 async def upload_incident_image(file_bytes: bytes, filename: str, incident_id: int, content_type: str) -> str:

@@ -1,4 +1,4 @@
-# Urban Intelligence Platform — Frontend
+# Urban Intelligence Platform ï¿½ Frontend
 
 Government Operations Center for AI-powered bus-camera detection + citizen reporting.
 
@@ -31,12 +31,10 @@ npm run preview
 | GET /users (list workers) | Missing/uncertain | Needed for worker dropdown in Assign modal. Currently manual ID entry with warning. |
 | district / ward on IncidentOut | Missing | Frontend has architecture ready but backend lacks field. District filter shows warning. |
 
-Do not fake success for these — UI shows development error.
+Do not fake success for these ï¿½ UI shows development error.
 
 ## Roles
-- admin / transport_officer ? /dashboard
-- worker ? /worker
-- citizen ? blocked from gov dashboard
+- admin / worker ? /dashboard
 
 ## Tech
 React 18 + Vite + TS + React Router + Axios + Tailwind + Leaflet + Lucide

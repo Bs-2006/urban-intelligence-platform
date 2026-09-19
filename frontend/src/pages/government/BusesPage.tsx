@@ -1,11 +1,71 @@
 import { useEffect, useState } from "react";
 import Topbar from "../../components/Topbar";
-import { getBuses } from "../../services/busService";
+import Pagination from "../../components/Pagination";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import EmptyState from "../../components/EmptyState";
-export default function BusesPage(){
-  const [data,setData]=useState<any[]>([]); const [loading,setLoading]=useState(true);
-  useEffect(()=>{ getBuses({limit:50}).then((r:any)=>{ const arr=Array.isArray(r)?r:r.items||[]; setData(arr); }).finally(()=>setLoading(false)); },[]);
-  return <><Topbar title="Buses"/><div className="p-6">{loading? <LoadingSpinner/> : data.length===0? <EmptyState title="No buses"/> :
-    <div className="bg-white border rounded-xl overflow-x-auto"><table className="w-full text-sm"><thead className="bg-gray-50"><tr><th className="p-3 text-left">Bus Number</th><th className="p-3">Route</th><th className="p-3">Capacity</th><th className="p-3">Driver</th><th className="p-3">Active</th></tr></thead><tbody>{data.map((b:any)=><tr key={b.id} className="border-t"><td className="p-3">{b.bus_number||b.id}</td><td className="p-3">{b.route_id||"-"}</td><td className="p-3">{b.capacity||"-"}</td><td className="p-3">{b.driver_name||"-"}</td><td className="p-3">{String(b.is_active)}</td></tr>)}</tbody></table></div>}</div></>;
+import { getBuses } from "../../services/busService";
+
+const PAGE_SIZE = 10;
+
+export default function BusesPage() {
+  const [data,    setData]    = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page,    setPage]    = useState(1);
+
+  useEffect(() => {
+    getBuses({ limit: 200 })
+      .then((r: any) => { const arr = Array.isArray(r) ? r : r.items || []; setData(arr); })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  const safePage   = Math.min(page, totalPages);
+  const pageSlice  = data.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  return (
+    <>
+      <Topbar title="Buses" />
+      <div className="p-6 space-y-4">
+        {loading ? (
+          <LoadingSpinner />
+        ) : data.length === 0 ? (
+          <EmptyState title="No buses" />
+        ) : (
+          <>
+            <div className="bg-white border border-surface-border rounded-xl overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-surface-page text-ink-muted">
+                  <tr>
+                    <th className="p-3 text-left">Bus Number</th>
+                    <th className="p-3 text-left">Route</th>
+                    <th className="p-3 text-left">Capacity</th>
+                    <th className="p-3 text-left">Driver</th>
+                    <th className="p-3 text-left">Active</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pageSlice.map((b: any) => (
+                    <tr key={b.id} className="border-t border-surface-border hover:bg-brand-50 transition-colors">
+                      <td className="p-3 font-medium text-ink">{b.bus_number || b.id}</td>
+                      <td className="p-3 text-ink-muted">{b.route_id || "—"}</td>
+                      <td className="p-3 text-ink-muted">{b.capacity || "—"}</td>
+                      <td className="p-3 text-ink-muted">{b.driver_name || "—"}</td>
+                      <td className="p-3 text-ink-muted">{String(b.is_active)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={safePage}
+              totalPages={totalPages}
+              totalItems={data.length}
+              pageSize={PAGE_SIZE}
+              onChange={p => setPage(p)}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
 }

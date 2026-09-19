@@ -1,7 +1,41 @@
 ﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Design Tokens (CSS Custom Properties) ── */
+:root {
+  --color-page-bg: #F8FAF9;
+  --color-card-bg: #FFFFFF;
+  --color-primary-green: #16803A;
+  --color-text-primary: #111111;
+  --color-text-secondary: #64748B;
+  --color-border: #DDE5E0;
+  --color-hover-green: #F0FDF4;
+}
+
+/* ── Base font ── */
 * { font-family: Inter, system-ui, -apple-system, sans-serif; }
+
+/* ── Leaflet z-index fixes ──
+   Keep these BELOW the sticky header (z-20 = 20) to prevent
+   map tiles from bleeding above the navigation bar.              */
 .leaflet-container { height: 100%; width: 100%; }
-.leaflet-pane { z-index: 400; }
-.leaflet-top, .leaflet-bottom { z-index: 500; }
+.leaflet-pane      { z-index: 2 !important; }
+.leaflet-tile-pane { z-index: 2 !important; }
+.leaflet-overlay-pane { z-index: 3 !important; }
+.leaflet-marker-pane  { z-index: 4 !important; }
+.leaflet-tooltip-pane { z-index: 5 !important; }
+.leaflet-popup-pane   { z-index: 6 !important; }
+.leaflet-top,
+.leaflet-bottom    { z-index: 7 !important; }
+
+/* ── Hide Leaflet attribution text on public landing page map ── */
+.hide-leaflet-attribution .leaflet-control-attribution {
+  display: none !important;
+}
+
+/* ── Scrollbar: thin and neutral ── */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f3f4f6; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }

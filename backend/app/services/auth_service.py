@@ -31,20 +31,23 @@ def _verify_otp_hash(otp: str, otp_hash: str) -> bool:
 
 
 async def _send_otp_email(email: str, otp: str) -> None:
-    try:
-        from app.utils.email import send_otp_email
+    from app.utils.email import send_otp_email
 
-        await send_otp_email(email, otp)
-    except Exception as e:
-        # Do not break registration if email fails in dev (log only).
-        # In production, you may want to raise 500 instead.
-        logger.warning("Failed to send OTP email to %s: %s", email, e)
+    await send_otp_email(email, otp)
 
 
 async def register_user(db: AsyncSession, data: UserCreate) -> User:
     existing = await db.execute(select(User).where(User.email == data.email))
-    if existing.scalar_one_or_none():
-        raise HTTPException(status_code=400, detail="Email already registered")
+    existing_user = existing.scalar_one_or_none()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "email_already_registered",
+                "message": "Email already registered",
+                "is_verified": bool(existing_user.is_verified),
+            },
+        )
     otp = _generate_otp()
     now = datetime.now(timezone.utc)
     expires = now + timedelta(minutes=settings.otp_expire_minutes)
@@ -54,15 +57,21 @@ async def register_user(db: AsyncSession, data: UserCreate) -> User:
         phone=data.phone,
         hashed_password=hash_password(data.password),
         role=data.role,
+        specialization=data.specialization,
         is_verified=False,
         otp_hash=_hash_otp(otp),
         otp_expires_at=expires,
         otp_sent_at=now,
     )
     db.add(user)
+    try:
+        await _send_otp_email(user.email, otp)
+    except Exception as e:
+        logger.error("Failed to send OTP email for new user %s: %s", user.email, e)
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
     await db.commit()
     await db.refresh(user)
-    await _send_otp_email(user.email, otp)
     return user
 
 
@@ -129,7 +138,12 @@ async def resend_otp(db: AsyncSession, email: str) -> dict:
     user.otp_hash = _hash_otp(otp)
     user.otp_expires_at = now + timedelta(minutes=settings.otp_expire_minutes)
     user.otp_sent_at = now
+    try:
+        await _send_otp_email(user.email, otp)
+    except Exception as e:
+        logger.error("Failed to resend OTP email to %s: %s", user.email, e)
+        await db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to send OTP email. Please try again.")
     await db.commit()
     await db.refresh(user)
-    await _send_otp_email(user.email, otp)
     return {"detail": "OTP resent successfully"}

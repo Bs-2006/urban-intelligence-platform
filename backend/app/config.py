@@ -1,3 +1,4 @@
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from functools import lru_cache
 
@@ -35,7 +36,7 @@ class Settings(BaseSettings):
     otp_resend_cooldown_seconds: int = 60
 
     class Config:
-        env_file = ".env"
+        env_file = str(Path(__file__).resolve().parents[2] / ".env")
         extra = "allow"
 
 
